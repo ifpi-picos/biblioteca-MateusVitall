@@ -1,3 +1,4 @@
+
 import dominio.Usuario;
 import dominio.Livro;
 import dominio.Emprestimo;
@@ -6,18 +7,20 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
+import dao.*;
 
 public class App {
     private static List<Usuario> usuarios = new ArrayList<>();
     private static List<Livro> livros = new ArrayList<>();
     private static List<Emprestimo> emprestimos = new ArrayList<>();
+    private static LivroDao livroDao = new LivroDao();
 
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
         int opcao;
 
         do {
-            System.out.println("\n=== Biblioteca: Nal do canal ===");
+            System.out.println("\n=== Biblioteca do Cirilo ===");
             System.out.println("1. Cadastrar Usuário");
             System.out.println("2. Cadastrar Livro");
             System.out.println("3. Realizar Empréstimo");
@@ -54,7 +57,8 @@ public class App {
         String email = scanner.nextLine();
 
         Usuario usuario = new Usuario(nome, cpf, email);
-        usuarios.add(usuario);
+        UsuarioDao usuarioDao = new UsuarioDao();
+        usuarioDao.salvar(usuario);
         System.out.println("Usuário cadastrado com êxito!");
     }
     //cadastro livro
@@ -70,7 +74,9 @@ public class App {
         scanner.nextLine(); // Consumir a nova linha após o número
 
         Livro livro = new Livro(autor, titulo, ed, ano);
-        livros.add(livro);
+        LivroDao livroDao = new LivroDao();
+        livroDao.salvar(livro);
+    
         System.out.println("Livro cadastrado com êxito!");
     }
 
