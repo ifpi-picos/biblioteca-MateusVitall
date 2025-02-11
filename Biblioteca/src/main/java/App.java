@@ -1,53 +1,51 @@
-
 import dominio.Usuario;
 import dominio.Livro;
 import dominio.Emprestimo;
-
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
-import dao.*;
+import dao.UsuarioDao;
+import dao.EmprestimoDao;
+import dao.LivroDao;
 
 public class App {
-    private static List<Usuario> usuarios = new ArrayList<>();
-    private static List<Livro> livros = new ArrayList<>();
-    private static List<Emprestimo> emprestimos = new ArrayList<>();
-    private static LivroDao livroDao = new LivroDao();
+    private static final Scanner scanner = new Scanner(System.in);
+    private static final UsuarioDao usuarioDao = new UsuarioDao();
 
     public static void main(String[] args) {
-        Scanner scanner = new Scanner(System.in);
         int opcao;
-
         do {
             System.out.println("\n=== Biblioteca do Cirilo ===");
             System.out.println("1. Cadastrar Usuário");
-            System.out.println("2. Cadastrar Livro");
-            System.out.println("3. Realizar Empréstimo");
-            System.out.println("4. Listar Usuários");
-            System.out.println("5. Listar Livros");
-            System.out.println("6. Listar Empréstimos");
+            System.out.println("2. Listar Usuários");
+            System.out.println("3. Atualizar Usuário");
+            System.out.println("4. Excluir Usuário");
+            System.out.println("5. Cadastrar Livro");
+            System.out.println("6. Realizar Empréstimo");
+            System.out.println("7. Listar Livros");
+            System.out.println("8. Listar Empréstimos");
             System.out.println("0. Sair");
             System.out.print("Escolha uma opção: ");
             opcao = scanner.nextInt();
-            scanner.nextLine();
+            scanner.nextLine(); // Consumir a nova linha
 
             switch (opcao) {
                 case 1 -> cadastrarUsuario(scanner);
-                case 2 -> cadastrarLivro(scanner);
-                case 3 -> realizarEmprestimo(scanner);
-                case 4 -> listarUsuarios();
-                case 5 -> listarLivros();
-                case 6 -> listarEmprestimos();
+                case 2 -> listarUsuarios();
+                case 3 -> atualizarUsuario(scanner);
+                case 4 -> excluirUsuario(scanner);
+                case 5 -> cadastrarLivro(scanner);
+                case 6 -> realizarEmprestimo(scanner);
+                case 7 -> listarLivros();
+                case 8 -> listarEmprestimos();
                 case 0 -> System.out.println("Saindo do sistema...");
                 default -> System.out.println("Opção inválida, tente novamente.");
             }
         } while (opcao != 0);
-
         scanner.close();
     }
 
-    //cadastro usuario
+    // Cadastro de usuário
     private static void cadastrarUsuario(Scanner scanner) {
         System.out.print("Nome: ");
         String nome = scanner.nextLine();
@@ -55,13 +53,45 @@ public class App {
         String cpf = scanner.nextLine();
         System.out.print("Email: ");
         String email = scanner.nextLine();
-
         Usuario usuario = new Usuario(nome, cpf, email);
-        UsuarioDao usuarioDao = new UsuarioDao();
         usuarioDao.salvar(usuario);
         System.out.println("Usuário cadastrado com êxito!");
     }
-    //cadastro livro
+
+    // Listagem de usuários
+    private static void listarUsuarios() {
+        var usuarios = usuarioDao.listar();
+        if (usuarios.isEmpty()) {
+            System.out.println("Nenhum usuário cadastrado.");
+        } else {
+            System.out.println("\n=== Lista de Usuários ===");
+            for (Usuario usuario : usuarios) {
+                System.out.println(
+                        "Nome: " + usuario.getNome() + ", CPF: " + usuario.getCPF() + ", Email: " + usuario.getEmail());
+            }
+        }
+    }
+
+    // Atualização de usuário
+    private static void atualizarUsuario(Scanner scanner) {
+        System.out.print("Digite o CPF do usuário que deseja atualizar: ");
+        String cpf = scanner.nextLine();
+        System.out.print("Novo Nome: ");
+        String nome = scanner.nextLine();
+        System.out.print("Novo Email: ");
+        String email = scanner.nextLine();
+        Usuario usuario = new Usuario(nome, cpf, email);
+        usuarioDao.atualizar(usuario);
+    }
+
+    // Exclusão de usuário
+    private static void excluirUsuario(Scanner scanner) {
+        System.out.print("Digite o CPF do usuário que deseja excluir: ");
+        String cpf = scanner.nextLine();
+        usuarioDao.excluir(cpf);
+    }
+
+    // Cadastro de livro
     private static void cadastrarLivro(Scanner scanner) {
         System.out.print("Título: ");
         String titulo = scanner.nextLine();
@@ -71,79 +101,47 @@ public class App {
         String ed = scanner.nextLine();
         System.out.print("Ano: ");
         int ano = scanner.nextInt();
-        scanner.nextLine(); // Consumir a nova linha após o número
-
+        scanner.nextLine(); // Consumir a nova linha
         Livro livro = new Livro(autor, titulo, ed, ano);
         LivroDao livroDao = new LivroDao();
         livroDao.salvar(livro);
-    
         System.out.println("Livro cadastrado com êxito!");
     }
 
-    //emprestimo
+    // Realizar empréstimo
     private static void realizarEmprestimo(Scanner scanner) {
-        if (livros.isEmpty() || usuarios.isEmpty()) {
-            System.out.println("Não há livros ou usuários cadastrados.");
-            return;
-        }
-
-        System.out.println("Selecione o usuário:");
-        for (int i = 0; i < usuarios.size(); i++) {
-            System.out.println(i + " - " + usuarios.get(i).getNome());
-        }
-        System.out.print("Escolha um usuário: ");
-        int usuarioIndex = scanner.nextInt();
-        scanner.nextLine();
-
-        System.out.println("Selecione o livro:");
-        for (int i = 0; i < livros.size(); i++) {
-            Livro livro = livros.get(i);
-            if (!livro.getEmprestado()) {
-                System.out.println(i + " - " + livro.getTitulo());
-            }
-        }
-        System.out.print("Escolha um livro: ");
-        int livroIndex = scanner.nextInt();
-        scanner.nextLine();
-
-        Livro livro = livros.get(livroIndex);
-        if (livro.getEmprestado()) {
-            System.out.println("O livro já está emprestado.");
-            return;
-        }
-
-        livro.setEmprestado(true);
-        Emprestimo emprestimo = new Emprestimo(LocalDate.now(), LocalDate.now().plusDays(14));
-        emprestimos.add(emprestimo);
-
+        System.out.print("Digite o id do usuario: ");
+        Integer usuarioId = scanner.nextInt();
+        System.out.print("Digite o id do livro: ");
+        Integer livroId = scanner.nextInt();
+        Emprestimo emprestimo = new Emprestimo(usuarioId, livroId, LocalDate.now(), LocalDate.now().plusDays(7));
+        EmprestimoDao emprestimoDao = new EmprestimoDao();
+        emprestimoDao.salvar(emprestimo);
         System.out.println("Empréstimo realizado com êxito!");
     }
 
-    
-    private static void listarUsuarios() {
-        if (usuarios.isEmpty()) {
-            System.out.println("Nenhum usuário cadastrado.");
-        } else {
-            System.out.println("\n=== Lista de Usuários ===");
-            usuarios.forEach(usuario -> System.out.println("Nome: " + usuario.getNome() + ", CPF: " + usuario.getCPF() + ", Email: " + usuario.getEmail()));
-        }
-    }
-
+    // Listagem de livros
     private static void listarLivros() {
-        if (livros.isEmpty()) {
-            System.out.println("Nenhum livro cadastrado.");
-        } else {
-            System.out.println("\n=== Lista de Livros ===");
-            livros.forEach(livro -> System.out.println("Título: " + livro.getTitulo() + ", Autor: " + livro.getAutor() + ", Ano: " + livro.getAno() + ", Emprestado: " + (livro.getEmprestado() ? "Sim" : "Não")));
-        }
+        new LivroDao().listarTodos();
+
     }
 
+    // Listagem de empréstimos
     private static void listarEmprestimos() {
+        EmprestimoDao emprestimoDao = new EmprestimoDao();
+        List<Emprestimo> emprestimos = emprestimoDao.buscarTodos();
+
         if (emprestimos.isEmpty()) {
-            System.out.println("Nenhum empréstimo realizado.");
+            System.out.println("Nenhum empréstimo encontrado.");
         } else {
             System.out.println("\n=== Lista de Empréstimos ===");
-            emprestimos.forEach(System.out::println);
+            for (Emprestimo emprestimo : emprestimos) {
+                System.out.println("Usuário ID: " + emprestimo.getUsuarioId() +
+                        " | Livro ID: " + emprestimo.getLivroId() +
+                        " | Data Empréstimo: " + emprestimo.getDataEmprestimo() +
+                        " | Data Devolução: " + emprestimo.getDataDevolucao());
+            }
         }
     }
+
 }

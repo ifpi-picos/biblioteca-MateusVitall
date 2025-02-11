@@ -6,7 +6,7 @@ public class ConexaoDao {
     
     public static Connection conexao(){
         try {
-            Connection conexao = DriverManager.getConnection("jdbc:postgresql://localhost:5432/sua_base","postgres" , "mateusdb");
+            Connection conexao = DriverManager.getConnection("jdbc:postgresql://localhost:5432/biblioteca","postgres" , "mateusdb");
             if (conexao != null) {
                 System.out.println("Conectado ao banco de dados!");
                 return conexao;

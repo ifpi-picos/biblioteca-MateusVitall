@@ -13,11 +13,13 @@ public class EmprestimoDao {
     }
 
     public void salvar(Emprestimo emprestimo) {
-        String sql = "INSERT INTO emprestimos (data_emprestimo, data_devolucao) VALUES (?, ?)";
+        String sql = "INSERT INTO emprestimo (usuario_id, livro_id, data_emprestimo, data_devolucao) VALUES (?, ?, ?, ?)";
 
         try (PreparedStatement preparedStatement = this.connection.prepareStatement(sql)) {
-            preparedStatement.setDate(1, Date.valueOf(emprestimo.getDataEmprestimo()));
-            preparedStatement.setDate(2, Date.valueOf(emprestimo.getDataDevolucao()));
+            preparedStatement.setInt(2, Integer.valueOf(emprestimo.getUsuarioId()));
+            preparedStatement.setInt(1, Integer.valueOf(emprestimo.getLivroId()));
+            preparedStatement.setDate(3, Date.valueOf(emprestimo.getDataEmprestimo()));
+            preparedStatement.setDate(4, Date.valueOf(emprestimo.getDataDevolucao()));
 
             preparedStatement.executeUpdate();
             System.out.println("Empréstimo cadastrado com sucesso!");
@@ -29,13 +31,15 @@ public class EmprestimoDao {
 
     public List<Emprestimo> buscarTodos() {
         List<Emprestimo> emprestimos = new ArrayList<>();
-        String sql = "SELECT * FROM emprestimos";
+        String sql = "SELECT usuario_id, livro_id, data_emprestimo, data_devolucao FROM emprestimo";
 
         try (PreparedStatement preparedStatement = this.connection.prepareStatement(sql);
              ResultSet resultSet = preparedStatement.executeQuery()) {
 
             while (resultSet.next()) {
                 Emprestimo emprestimo = new Emprestimo(
+                    resultSet.getInt("usuario_id"),
+                    resultSet.getInt("livro_id"),
                     resultSet.getDate("data_emprestimo").toLocalDate(),
                     resultSet.getDate("data_devolucao").toLocalDate()
                 );
@@ -45,11 +49,12 @@ public class EmprestimoDao {
         } catch (SQLException e) {
             System.err.println("Erro ao buscar empréstimos: " + e.getMessage());
         }
+
         return emprestimos;
     }
 
     public Emprestimo buscarPorId(int id) {
-        String sql = "SELECT * FROM emprestimos WHERE id = ?";
+        String sql = "SELECT * FROM emprestimo WHERE id = ?";
         Emprestimo emprestimo = null;
 
         try (PreparedStatement preparedStatement = this.connection.prepareStatement(sql)) {
@@ -58,8 +63,11 @@ public class EmprestimoDao {
 
             if (resultSet.next()) {
                 emprestimo = new Emprestimo(
+                    resultSet.getInt("usuario_id"),
+                    resultSet.getInt("livro_id"),
                     resultSet.getDate("data_emprestimo").toLocalDate(),
                     resultSet.getDate("data_devolucao").toLocalDate()
+                    
                 );
             }
 
@@ -70,7 +78,7 @@ public class EmprestimoDao {
     }
 
     public void deletar(int id) {
-        String sql = "DELETE FROM emprestimos WHERE id = ?";
+        String sql = "DELETE FROM emprestimo WHERE id = ?";
 
         try (PreparedStatement preparedStatement = this.connection.prepareStatement(sql)) {
             preparedStatement.setInt(1, id);
